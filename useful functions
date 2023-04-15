@@ -1,0 +1,111 @@
+bool are_lines_crossed(segment s1, segment s2) {
+	if (s1.B == 0 or s2.B == 0) {
+		if (s1.B == 0 and s2.B == 0) {
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
+	else {
+		double k1 = s1.A / (-s1.B);
+		double k2 = s2.A / (-s2.B);
+		if (k1 == k2) {
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
+}
+
+
+
+
+
+bool are_lines_matched(segment s1, segment s2) {
+	if (s1.B == 0 or s2.B == 0) {
+		if (s1.B == 0 and s2.B == 0) {
+			if ((s1.C - 2 * s1.C) / s1.A == (s2.C - 2 * s2.C) / s2.A) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		double k1 = s1.A / (-s1.B);
+		double m1 = s1.C / (-s1.B);
+		double k2 = s2.A / (-s2.B);
+		double m2 = s2.C / (-s2.B);
+		if (k1 == k2) {
+			if (m2 == m1) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		else {
+			return false;
+		}
+	}
+}
+
+
+
+
+
+bool are_lines_parallel(segment s1, segment s2) {
+	if (are_lines_crossed(s1, s2) or are_lines_matched(s1, s2)) {
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+
+
+
+
+
+void intersection_dot_of_lines(dot& a, segment s1, segment s2) {
+	if (s1.B == 0 or s2.B == 0) {
+		if (s1.B == 0 and s2.B != 0) {
+			if (s2.A == 0) {
+				a.x = (s1.C - 2 * s1.C) / s1.A;
+				a.y = (s2.C - 2 * s2.C) / s2.B;
+			}
+			else {
+				double k2 = s2.A / (s2.B - 2 * s2.B);
+				double m2 = s2.C / (s2.B - 2 * s2.B);
+				a.x = (s1.C - 2 * s1.C) / s1.A;
+				a.y = k2 * (s1.C - 2 * s1.C) / s1.A + m2;
+			}
+		}
+		if (s2.B == 0 and s1.B != 0) {
+			if (s1.A == 0) {
+				a.x = (s2.C - 2 * s2.C) / s2.A;
+				a.y = (s1.C - 2 * s1.C) / s1.B;
+			}
+			else {
+				double k1 = s1.A / (s1.B - 2 * s1.B);
+				double m1 = s1.C / (s1.B - 2 * s1.B);
+				a.x = (s2.C - 2 * s2.C) / s2.A;
+				a.y = k1 * (s2.C - 2 * s2.C) / s2.A + m1;
+			}
+		}
+	}
+	else {
+		double k1 = s1.A / (s1.B - 2 * s1.B);
+		double m1 = s1.C / (s1.B - 2 * s1.B);
+		double k2 = s2.A / (s2.B - 2 * s2.B);
+		double m2 = s2.C / (s2.B - 2 * s2.B);
+		a.x = (m2 - m1) / (k1 - k2);
+		a.y = k1 * (m2 - m1) / (k1 - k2) + m1;
+	}
+}
