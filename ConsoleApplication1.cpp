@@ -146,16 +146,28 @@ double circle_square(circle c) {  // Площадь круга
 // Функция, проверяющая принадлежность точки отрезку:
 bool is_dot_in_segment(dot a, segment s) {
 	double e = 0.00000000000001;   // Погрешность
-	double k = (s.b.y - s.a.y) / (s.b.x - s.a.x);
-	double m = s.a.y - s.a.x * (s.b.y - s.a.y) / (s.b.x - s.a.x);
-	if (not ((a.x * k + m) * (1 - e) <= a.y and a.y <= (a.x * k + m) * (1 + e))) {
+	double k, m;
+	if (s.b.x != s.a.x) {
+		k = (s.b.y - s.a.y) / (s.b.x - s.a.x);
+		m = s.a.y - s.a.x * (s.b.y - s.a.y) / (s.b.x - s.a.x);
+		if (not ((a.x * k + m) * (1 - e) <= a.y and a.y <= (a.x * k + m) * (1 + e))) {
+			return false;
+		}
+		if (a.x < s.a.x and a.x < s.b.x or a.x > s.a.x and a.x > s.b.x or
+			a.y < s.a.y and a.y < s.b.y or a.y > s.a.y and a.y > s.b.y) {
+			return false;
+		}
+		return true;
+	}
+	else {
+		if (a.x != s.a.x) {
+			return false;
+		}
+		if (a.y >= s.a.y and a.y <= s.b.y or a.y <= s.a.y and a.y >= s.b.y) {
+			return true;
+		}
 		return false;
 	}
-	if (a.x < s.a.x and a.x < s.b.x or a.x > s.a.x and a.x > s.b.x or
-		a.y < s.a.y and a.y < s.b.y or a.y > s.a.y and a.y > s.b.y) {
-		return false;
-	}
-	return true;
 }
 
 // Функция, проверяющая принадлежность точки кругу:
