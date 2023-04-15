@@ -1,11 +1,19 @@
-﻿#include <iostream>
+#include <iostream>
 using namespace std;
-#define M_PI 3.14159265358979323846
+#define M_PI 3.1415926535897932
 
 
 struct dot {  // Структура точки
 	double x;
 	double y;
+
+	dot operator + (const dot& d) {
+		return dot{x + d.x, y + d.y};
+	}
+
+	dot operator - (const dot& d) {
+		return dot{x - d.x, y - d.y};
+	}
 };
 
 void read_dot(dot& p) {  // Функция считывания точки
@@ -16,21 +24,17 @@ void write_dot(dot p) {  // Функция вывода точки
 	cout << p.x << " " << p.y << endl;
 }
 
-void fold_dots(dot& c, dot a, dot b) {  // Функция сложения двух точек (векторов)
-	c.x = a.x + b.x;
-	c.y = a.y + b.y;
-}
-
-void substract_dots(dot& c, dot a, dot b) {  // Функция вычитания двух точек (векторов)
-	c.x = a.x - b.x;
-	c.y = a.y - b.y;
-}
-
-void turn_dot(dot a, double angle) {  // Функция поворота точки
-	double x = a.x;                  // относительно начала координат
+void turn_dot(dot& a, double angle) {  // Функция поворота точки
+	double x = a.x;                   // относительно начала координат
 	double y = a.y;
-	a.x = x * cos(angle) - y * sin(angle);
-	a.y = x * sin(angle) + y * cos(angle);
+	a.x = floor((x * cos(angle) - y * sin(angle)) * 1000000000000) / 1000000000000;
+	a.y = floor((x * sin(angle) + y * cos(angle)) * 1000000000000) / 1000000000000;
+	
+	// Округление нужно, чтобы исправить небольшую неточность числа PI
+	
+	//Без округления:
+	// a.x = x * cos(angle) - y * sin(angle);
+	// a.y = x * sin(angle) + y * cos(angle);
 }
 
 
@@ -60,10 +64,10 @@ struct square {    // Структура квадрата
 	dot O;         // Координата центра квадрата
 	double a;      // Длина стороны
 	double angle;  // Угол поворота квадрата относительно т.O
-				   //против часовой стрелки в радианах
+	//против часовой стрелки в радианах
 
 	dot A, B, C, D; // вершины квадрата (см. функц. create_square(), там же на схематичном рисунке
-	                // можно посмотреть расположение вершин)
+	// можно посмотреть расположение вершин)
 
 	dot OA, OB, OC, OD; // векторы (подробнее см. функц. create_square())
 };
@@ -90,11 +94,11 @@ void create_square(square& s, dot O, double a, double angle) {   // Создан
 				//         |-----------------------------------> X
 
 	// Теперь получим координаты вершин "относительно центра квадрата"
-	// Здесь-то нам и пригодится substract_dots():
-	substract_dots(s.OA, s.A, s.O);
-	substract_dots(s.OB, s.B, s.O);
-	substract_dots(s.OC, s.C, s.O);
-	substract_dots(s.OD, s.D, s.O);
+	// Здесь-то нам и пригодится переопределение операторов "+" и "-" для точек:
+	s.OA = s.A - s.O;
+	s.OB = s.B - s.O;
+	s.OC = s.C - s.O;
+	s.OD = s.D - s.O;
 
 	// Теперь повернём векторы OA, OB, OC, OD при помощи матрицы поворота,
 	// Для этого нам и понадобится функция turn_dot():
@@ -105,10 +109,10 @@ void create_square(square& s, dot O, double a, double angle) {   // Создан
 
 	// Теперь посчитаем новые координаты вершин квадрата
 	// После поворота:
-	fold_dots(s.A, s.O, s.OA);
-	fold_dots(s.B, s.O, s.OB);
-	fold_dots(s.C, s.O, s.OC);
-	fold_dots(s.D, s.O, s.OD);
+	s.A = s.O + s.OA;
+	s.B = s.O + s.OB;
+	s.C = s.O + s.OC;
+	s.D = s.O + s.OD;
 }
 
 double square_area(square s) {  // Площадь квадрата
@@ -145,8 +149,8 @@ double circle_square(circle c) {  // Площадь круга
 
 // Функция, проверяющая принадлежность точки отрезку:
 bool is_dot_in_segment(dot a, segment s) {
-	double e = 0.00000000000001;   // Погрешность
-	double k, m;
+	double e = 0.00000000000001;   // Погрешность нужна в случае точек с иррациональными координатами,
+	double k, m;				  // которые из-за округления "не до конца ложатся" на прямую
 	if (s.b.x != s.a.x) {
 		k = (s.b.y - s.a.y) / (s.b.x - s.a.x);
 		m = s.a.y - s.a.x * (s.b.y - s.a.y) / (s.b.x - s.a.x);
@@ -188,8 +192,8 @@ bool is_dot_in_square(dot a, square s) {
 	// В новой системе координат координаты s.A, s.B, s.C, s.D равны соответственно
 	// s.OA, s.OB, s.OC, s.OD
 
-	dot Oa{0, 0};  // - Координата точки а в новой системе отсчета
-	substract_dots(Oa, a, s.O);
+	dot Oa;  // - Координата точки а в новой системе отсчета
+	Oa = a - s.O;
 
 	// Теперь в новой системе отсчета повернем квадрат на угол - angle,
 	// чтобы его стороны стали параллельны осям координат,
@@ -209,35 +213,35 @@ bool is_dot_in_square(dot a, square s) {
 	// Схематично полученную на данном шаге ситуацию можно представить так:
 	//
 	//
-	//										/\ Y'
-	//										|
-	//										|
-	//										|
-	//										|
-	//					 		     D'_________________|___________________A'
-	//					    		     |			|		    |
-	//					 		     |		   	|		    |
-	//					       		     |			|	a.          |
-	//					 		     |			|		    |
-	//					     		     |			|		    |
-	//							     |			|		    |
-  	//	   					  ------------------------------|------------------------------> X'
-	//							     |		        |O		    |
-	//					 		     |			|		    |
-	//					   		     |			|		    |
-	//					 		     |			|		    |
-	//					 		     |			|		    |
-	//					 		     |			|		    |
-	//					 		     C'_________________|___________________B'
-	//					 					|
-	//										|
-	//										|
-	//										|
-	//										|
-	//										|
+	//						/\ Y'
+	//						|
+	//						|
+	//						|
+	//						|
+	//			     D'_________________|___________________A'
+	//	                     |			|		    |
+	//	                     |		   	|		    |
+	//	                     |			|	a.	    |
+	//	                     |			|		    |
+	//	                     |			|		    |
+	//	                     |			|	 	    |
+	//	   	  ------------------------------|------------------------------> X'
+	//			     |			|O		    |
+	//			     |			|		    |
+	//			     |			|		    |
+	//			     |			|		    |
+	//			     |			|		    |
+	//			     |			|		    |
+	//			     C'_________________|___________________B'
+	//					 	|
+	//					     	|
+	//						|
+	//						|
+	//						|
+	//						|
 
 	// Теперь просто по координатам проверим лежит ли эта точка в квадрате:
-	if ((- s.a / 2 <= Oa.x <= s.a / 2) and (- s.a / 2 <= Oa.y <= s.a / 2)) {
+	if ((-s.a / 2 <= Oa.x and Oa.x <= s.a / 2) and (-s.a / 2 <= Oa.y and Oa.y <= s.a / 2)) {
 		return true;
 	}
 	return false;
@@ -248,11 +252,13 @@ bool is_dot_in_square(dot a, square s) {
 
 int main() {
 	dot a, b;
-	square s;
+	dot c;
+	segment s;
 	read_dot(a);
 	read_dot(b);
-	create_square(s, a, 1, 0);
-	if (is_dot_in_square(b, s)) {
+	read_dot(c);
+	create_segment(s, a, b);
+	if (is_dot_in_segment(c, s)) {
 		cout << "YES" << endl;
 	}
 	else {
